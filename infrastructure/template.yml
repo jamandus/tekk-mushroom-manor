@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+
+Description: tekk-mushroom-manor is an experimental project to practice and expand proficiency in Java and AWS
+
+Parameters:
+  ComponentName:
+    Type: String
+    Default: "tekk-mushroom-manor"
+  HarvestLocationIndex:
+    Type: String
+    Default: "HarvestLocationIndex"
+
+Resources:
+  MushroomLocation:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ComponentName}-${MushroomLocation}
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: position
+          AttributeType: S
+        - AttributeName: harvestDate
+          KeyType: RANGE
+        - AttributeName: name
+          AttributeType: S
+        - AttributeName: poisonous
+          AttributeType: BOOL
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      GlobalSecondaryIndexes:
+        - IndexName:
+            !Ref HarvestLocationIndex
+          KeySchema:
+            - AttributeName: position
+              KeyType: HASH
+            - AttributeName: harvestDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - name
+              - poisonous
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  MushroomLocationReadWritePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Policy for reading and writing to mushroom location
+      ManagedPolicyName: mushroom-location-read-write-policy
+      Path: /
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:deleteitem
+              - dynamodb:batchgetitem
+              - dynamodb:batchwriteitem
+              - dynamodb:putitem
+              - dynamodb:updateitem
+              - dynamodb:getrecords
+              - dynamodb:getsharditerator
+              - dynamodb:listshards
+              - dynamodb:describestream
+              - dynamodb:liststreams
+              - dynamodb:query
+              - dynamodb:scan
+              - dynamodb:getitem
+            Resource:
+              - !GetAtt MushroomLocation.Arn
+
+  MushroomLocationReadOnlyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Policy for reading to mushroom location
+      ManagedPolicyName: mushroom-location-read-only-policy
+      Path: /
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:batchgetitem
+              - dynamodb:getrecords
+              - dynamodb:getsharditerator
+              - dynamodb:query
+              - dynamodb:scan
+              - dynamodb:getitem
+            Resource:
+              - !GetAtt MushroomLocation.Arn
+
+Outputs:
+  MushroomLocationTableName:
+    Description: The name of the table that stores mushroom data via Tekk Mycelium Maestro
+    Value: !Ref MushroomLocation
+    Export:
+      Name: !Sub "${AWS::StackName}-MushroomLocationTableName"
+  HarvestLocationIndexName:
+    Description: The index for querying position and sort on harvest date
+    Value: !Ref HarvestLocationIndex
+    Export:
+      Name: !Sub "${AWS::StackName}-HarvestLocationIndexName"
+  MushroomLocationStream:
+    Description: Stream which propagate events for whenever a mushroom is inserted, updated or deleted
+    Value: !GetAtt MushroomLocation.StreamArn
+    Export:
+      Name: !Sub "${AWS::StackName}-MushroomLocationStream"
+  MushroomLocationReadWritePolicyName:
+    Description: The read/write policy name for Mushroom Manor
+    Value: !Ref MushroomLocationReadWritePolicy
+    Export:
+      Name: !Sub "${AWS::StackName}-MushroomLocationReadWritePolicyName"
+  MushroomLocationReadOnlyPolicyName:
+    Description: The read only policy name for Mushroom Manor
+    Value: !Ref MushroomLocationReadOnlyPolicy
+    Export:
+      Name: !Sub "${AWS::StackName}-MushroomLocationReadOnlyPolicyName"
