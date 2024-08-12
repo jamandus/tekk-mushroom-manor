@@ -23,7 +23,7 @@
     <aws-sdk-v1.version>1.12.694</aws-sdk-v1.version>
     <aws-sdk-v2.version>2.25.23</aws-sdk-v2.version>
 
-    <ddb-local.version>2.3.0</ddb-local.version>
+    <ddb-local.version>2.5.2</ddb-local.version>
     <sqlite.version>1.0.392</sqlite.version>
     <junit5.version>5.10.2</junit5.version>
     <mockito-core.version>5.11.0</mockito-core.version>
