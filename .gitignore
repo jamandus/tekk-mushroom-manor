@@ -13,6 +13,7 @@ target/
 .idea/codeStyles/
 .idea/aws.xml
 .idea/uiDesigner.xml
+.idea/misc.xml
 *.iws
 *.iml
 *.ipr
